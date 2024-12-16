@@ -23,6 +23,7 @@ def make_sidebar():
 
         if st.session_state.get("logged_in", False):
             st.page_link("pages/ipa.py", label="IPA", icon="🚝")
+            st.page_link("pages/ipaxcat.py", label="IPA x Cat", icon="🗿")
 
             st.write("")
             st.write("")
