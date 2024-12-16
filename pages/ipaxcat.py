@@ -95,9 +95,6 @@ if ls_filter != "All":
 if nps_filter != "All":
     filtered_data = filtered_data[filtered_data['NPS_Category'] == nps_filter]
 
-# Display the filtered data
-st.dataframe(filtered_data)
-
 # Generate Figures Based on Filtered Data
 # LS Categories Bar Chart with Count and Percentage
 ls_count = filtered_data['LS_Category'].value_counts().reset_index()
