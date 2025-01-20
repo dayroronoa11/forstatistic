@@ -99,6 +99,9 @@ if ls_filter != "All":
 if nps_filter != "All":
     filtered_data = filtered_data[filtered_data['NPS_Category'] == nps_filter]
 
+# Display the filtered data
+st.dataframe(filtered_data)
+
 # LS Categories Bar Chart with Count and Percentage
 ls_count = filtered_data['LS_Category'].value_counts().reset_index()
 ls_count.columns = ['LS_Category', 'Count']
@@ -152,17 +155,19 @@ independent_vars = ['KD1', 'KD2', 'KD3', 'KI1', 'KI2', 'KI3', 'KI4', 'KI5', 'KR1
                     'KR4', 'KR5', 'PR1', 'PR2', 'TU1', 'TU2', 'KE1', 'KE2', 'KE3']
 
 # Mean of SAT (Performance) and mean of B variables (Importance)
-performance_mean = filtered_data['SAT'].mean()
-importance_mean = filtered_data[independent_vars].mean()
+performance_mean = df_survey['SAT'].mean()
+importance_mean = df_survey[independent_vars].mean()
 
 # Standardize the independent variables and fit linear regression for Importance (X) based on SAT (Y)
 scaler = StandardScaler()
-X = scaler.fit_transform(filtered_data[independent_vars])  
-y = scaler.fit_transform(filtered_data[['SAT']]).flatten()  
+X = scaler.fit_transform(filtered_data[independent_vars])  # Use filtered_data here
+y = scaler.fit_transform(filtered_data[['SAT']]).flatten()  # Use filtered_data here
 
 model = LinearRegression()
 model.fit(X, y)
-importance_values = model.coef_
+
+# Using the Standardized Beta (St B) coefficients for Importance (not absolute values)
+importance_values = model.coef_  # Standardized beta coefficients as importance
 
 # Construct the correlation_df DataFrame with Standardized Beta (St B) values
 correlation_df = pd.DataFrame({
@@ -189,13 +194,14 @@ def classify_factor_dynamic(importance, performance, importance_midpoint, perfor
     else:
         return 'Low Importance, Low Performance (Low priority)'
 
-
 # Classify each factor using the midpoint thresholds
 correlation_df['Category'] = [
     classify_factor_dynamic(row['Importance'], row['Performance'], 
                             importance_midpoint, performance_midpoint)
     for _, row in correlation_df.iterrows()
 ]
+
+st.dataframe(correlation_df)
 
 # Scatter plot for Importance-Performance Analysis
 fig, ax = plt.subplots(figsize=(10, 6))
@@ -210,6 +216,10 @@ for i, row in correlation_df.iterrows():
     ax.text(row['Performance'] + 0.01, row['Importance'], row['Factor'], 
             fontsize=9, ha='left', va='bottom')
 
+# Adjust limits to center the plot around the midpoints
+#ax.set_xlim(min(performance_min, performance_midpoint - 0.4), max(performance_max, performance_midpoint + 0.4))
+#ax.set_ylim(min(importance_min, importance_midpoint - 0.2), max(importance_max, importance_midpoint + 0.2))
+
 # Add dynamic quadrant lines
 ax.axhline(y=importance_midpoint, color='green', linestyle='--', label="Importance Midpoint")
 ax.axvline(x=performance_midpoint, color='red', linestyle='--', label="Performance Midpoint")
@@ -221,12 +231,30 @@ ax.set_title('Importance-Performance Analysis', fontsize=16, pad=20)
 
 # Add grid lines and adjust legend
 ax.grid(True, linestyle='--', alpha=0.5)
-ax.legend(loc='upper left', fontsize=10, markerscale=1.5)
+ax.legend(loc='lower right', bbox_to_anchor=(1, 0), fontsize=10, markerscale=1.5)
 
 # Format tick labels to 2 decimal places
 ax.xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
 ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
 
+# Add text annotations for each quadrant
+# Top-left quadrant
+#ax.text(performance_min, importance_max, 'Concentrate Here', 
+        #ha='center', va='center', fontsize=10, color='blue', fontweight='bold')
+
+# Top-right quadrant
+#ax.text(performance_max - 0.05, importance_max - 0.05, 'Keep up the good work', 
+        #ha='center', va='center', fontsize=10, color='purple', fontweight='bold')
+
+# Bottom-left quadrant
+#ax.text(performance_min + 0.05, importance_min + 0.05, 'Low priority', 
+        #ha='center', va='center', fontsize=10, color='red', fontweight='bold')
+
+# Bottom-right quadrant
+#ax.text(performance_max - 0.05, importance_min + 0.05, 'Possible overkill', 
+        #ha='center', va='center', fontsize=10, color='green', fontweight='bold')
+
+# Display plot
 st.pyplot(fig)
 
 # Classification of Independent Variables
@@ -236,3 +264,6 @@ for category in correlation_df['Category'].unique():
 
         factors_in_category = correlation_df[correlation_df['Category'] == category]['Factor']
         st.write(", ".join(factors_in_category))
+
+
+
