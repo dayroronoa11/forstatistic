@@ -155,8 +155,8 @@ independent_vars = ['KD1', 'KD2', 'KD3', 'KI1', 'KI2', 'KI3', 'KI4', 'KI5', 'KR1
                     'KR4', 'KR5', 'PR1', 'PR2', 'TU1', 'TU2', 'KE1', 'KE2', 'KE3']
 
 # Mean of SAT (Performance) and mean of B variables (Importance)
-performance_mean = df_survey['SAT'].mean()
-importance_mean = df_survey[independent_vars].mean()
+performance_mean = filtered_data['SAT'].mean()
+importance_mean = filtered_data[independent_vars].mean()
 
 # Standardize the independent variables and fit linear regression for Importance (X) based on SAT (Y)
 scaler = StandardScaler()
